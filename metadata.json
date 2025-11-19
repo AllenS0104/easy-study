@@ -1,0 +1,7 @@
+{
+  "name": "学习大百科 (Study Encyclopedia)",
+  "description": "Your all-in-one platform for global knowledge, latest Chinese exam updates, and AI-generated mock tests using Google Gemini.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
