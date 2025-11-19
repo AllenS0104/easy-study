@@ -11,6 +11,7 @@ const getAiClient = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
  */
 export const searchKnowledgeBase = async (query: string, category: CategoryId): Promise<SearchResult> => {
   const ai = getAiClient();
+  const currentDate = new Date().toLocaleDateString("zh-CN", { year: 'numeric', month: 'long', day: 'numeric' });
   
   let contextPrompt = "";
   switch (category) {
@@ -18,17 +19,25 @@ export const searchKnowledgeBase = async (query: string, category: CategoryId): 
     case 'SECONDARY': contextPrompt = "Context: Middle/High School Curriculum (中学教育). Focus on exam points and academic depth."; break;
     case 'UNIVERSITY': contextPrompt = "Context: University & Research (大学与学术). Provide advanced, scholarly information."; break;
     case 'OLYMPIAD': contextPrompt = "Context: Math Olympiad & Logic (奥数与逻辑). Focus on problem-solving strategies."; break;
-    case 'CS': contextPrompt = "Context: Computer Science & Programming (编程与技术). Include code snippets if relevant."; break;
-    case 'EXAMS': contextPrompt = "Context: Latest Chinese Exams & Policies (最新考试资讯). Focus on schedules, policies, and official announcements."; break;
+    case 'CS': contextPrompt = "Context: Computer Science & Programming (编程与技术). Include code snippets if relevant. Focus on latest versions."; break;
+    case 'EXAMS': contextPrompt = `Context: Latest Chinese Exams & Policies (最新考试资讯). Focus on schedules, policies, and official announcements effective in ${currentDate} or upcoming.`; break;
     default: contextPrompt = "Context: General Knowledge (通识百科).";
   }
 
   const prompt = `
+    System Context: Today is ${currentDate}.
     You are the engine for "Study Encyclopedia (学习大百科)". 
     User Query: "${query}"
     ${contextPrompt}
     
-    Instructions:
+    CRITICAL INSTRUCTION FOR FRESHNESS:
+    1. The user demands the LATEST, MOST UP-TO-DATE information.
+    2. PRIORITIZE information from 2024 and 2025.
+    3. If the search results show newer policies/versions than your internal training data, USE THE SEARCH RESULTS.
+    4. Explicitly mention dates (e.g., "As of 2025...", "Effective from Jan 2025...").
+    5. IGNORE obsolete data (e.g., exam schedules from 2023 or older) unless the user specifically asks for history.
+    
+    Standard Instructions:
     1. Provide a comprehensive, structured encyclopedia entry.
     2. Language: Use Simplified Chinese as the primary language.
     3. Bilingual Requirement: ALWAYS provide the English translation for the Main Title, Key Concepts, and Technical Terms in parentheses (e.g., 量子力学 (Quantum Mechanics)).
@@ -60,14 +69,26 @@ export const searchKnowledgeBase = async (query: string, category: CategoryId): 
  */
 export const generateMockTest = async (topic: string, difficulty: string = "medium"): Promise<Quiz> => {
   const ai = getAiClient();
+  const currentDate = new Date().toLocaleDateString("zh-CN", { year: 'numeric', month: 'long', day: 'numeric' });
 
-  const prompt = `Generate a practice exam (mock test) for the topic: "${topic}".
+  const prompt = `
+  Context: Today is ${currentDate}.
+  Task: Generate a comprehensive professional practice exam (mock test) for the topic: "${topic}".
   Difficulty: ${difficulty}.
   Language: Chinese (Simplified).
   
-  Create exactly 5 multiple-choice questions.
-  The content must be educational and high-quality.
-  For each question, provide 4 options, the correct answer index (0-3), and a detailed explanation.`;
+  CRITICAL INSTRUCTION ON EXAM QUANTITY & SIMULATION:
+  1. **Match Official Count**: Analyze the official format of the exam "${topic}". Generate the SAME number of Multiple Choice Questions as the real exam's standard MCQ section.
+  2. **Expanded Capacity**: If the official section is large (e.g. Civil Service XingCe), generate UP TO 50 questions.
+  3. **Safety Cap**: Maximum 50 questions per request to ensure data integrity. Do not generate less than 10 unless the official exam specifically has fewer.
+  4. **Option Format**: Use the standard number of options for this exam (usually 4, sometimes 5).
+  5. **Syllabus**: Ensure questions are based on the LATEST 2024-2025 curriculum/policy.
+
+  Output Requirements:
+  - Content must be educational and high-quality.
+  - detailed explanation for every question.
+  - correct answer index (0-based).
+  `;
 
   try {
     const response = await ai.models.generateContent({

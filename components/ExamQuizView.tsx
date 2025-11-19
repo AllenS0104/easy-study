@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Loader2, CheckCircle, XCircle, HelpCircle, RefreshCw, Trophy, ArrowRight, GraduationCap } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, HelpCircle, RefreshCw, Trophy, ArrowRight, GraduationCap, CalendarCheck, ListOrdered } from 'lucide-react';
 import { generateMockTest } from '../services/geminiService';
 import { Quiz, LoadingState } from '../types';
 
@@ -61,21 +61,34 @@ export const ExamQuizView: React.FC = () => {
            <GraduationCap size={32} />
         </div>
         <h2 className="text-3xl font-bold text-slate-900 mb-2">AI 模拟考场 / Mock Exams</h2>
-        <p className="text-slate-600">Generate custom practice tests for any subject instantly.<br/>随时生成任意学科的模拟试题。</p>
+        <p className="text-slate-600">
+          Generate custom practice tests based on latest syllabuses.<br/>
+          AI将根据官方考试结构（选择题部分）生成真题级模拟卷。
+        </p>
       </div>
 
       {/* Config Card */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-8">
         <form onSubmit={handleGenerate} className="space-y-5">
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2">Subject Topic / 考试主题</label>
+            <div className="flex justify-between items-center mb-2">
+                <label className="block text-sm font-bold text-slate-700">Subject Topic / 考试主题</label>
+                <span className="text-xs text-brand-600 flex items-center bg-brand-50 px-2 py-1 rounded">
+                    <CalendarCheck className="w-3 h-3 mr-1" />
+                    2025 Latest Syllabus
+                </span>
+            </div>
             <input
               type="text"
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
-              placeholder="e.g., High School Physics, Tang Dynasty History, Traffic Rules..."
+              placeholder="e.g., 2025 Gaokao Math, Civil Service Logic, IELTS Reading..."
               className="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all text-lg"
             />
+            <p className="text-xs text-slate-400 mt-1.5 flex items-center">
+               <ListOrdered className="w-3 h-3 mr-1" />
+               Question count matches official structure (Max 50 per session).
+            </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -100,7 +113,7 @@ export const ExamQuizView: React.FC = () => {
                   {status === LoadingState.LOADING ? (
                     <>
                       <Loader2 className="animate-spin h-5 w-5 mr-2" />
-                      Generating / 生成中...
+                      Simulating Exam...
                     </>
                   ) : (
                     <>
@@ -118,9 +131,15 @@ export const ExamQuizView: React.FC = () => {
       {status === LoadingState.SUCCESS && quiz && (
         <div className="animate-fadeIn space-y-6">
           
+          {/* Quiz Header Info */}
+          <div className="flex items-center justify-between bg-slate-50 px-4 py-2 rounded-lg text-xs font-medium text-slate-500 uppercase tracking-wider">
+             <span>Topic: {quiz.topic}</span>
+             <span>{quiz.questions.length} Questions</span>
+          </div>
+
           {/* Score Card (appears after submit) */}
           {isSubmitted && (
-             <div className="bg-gradient-to-r from-brand-500 to-cyan-600 rounded-2xl p-6 text-white shadow-lg flex items-center justify-between">
+             <div className="bg-gradient-to-r from-brand-500 to-cyan-600 rounded-2xl p-6 text-white shadow-lg flex items-center justify-between animate-scaleIn">
                 <div>
                   <h3 className="text-2xl font-bold mb-1">Result / 成绩</h3>
                   <p className="opacity-90 text-lg">You scored <span className="font-bold text-yellow-300 text-2xl mx-1">{calculateScore()}</span> out of {quiz.questions.length}</p>
@@ -184,7 +203,7 @@ export const ExamQuizView: React.FC = () => {
 
                 {/* Explanation */}
                 {showResult && (
-                  <div className="bg-slate-50 p-5 border-t border-slate-100">
+                  <div className="bg-slate-50 p-5 border-t border-slate-100 animate-fadeIn">
                     <div className="flex items-start gap-3">
                        <HelpCircle className="h-5 w-5 text-brand-500 mt-0.5 flex-shrink-0" />
                        <div>
